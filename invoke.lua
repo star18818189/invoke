@@ -10,19 +10,19 @@ local RunService = game:GetService("RunService")
 
 local Invoke = {}
 Invoke.__index = Invoke
-Invoke.Version = "1.1.0"
+Invoke.Version = "2.0.0"
 
 Invoke.Theme = {
-	Accent = Color3.fromRGB(225, 42, 57),
-	AccentDark = Color3.fromRGB(132, 24, 34),
-	Background = Color3.fromRGB(10, 11, 14),
-	Surface = Color3.fromRGB(16, 17, 21),
-	SurfaceRaised = Color3.fromRGB(22, 23, 29),
-	SurfaceHover = Color3.fromRGB(29, 30, 37),
-	Stroke = Color3.fromRGB(48, 50, 60),
-	StrokeSoft = Color3.fromRGB(34, 35, 43),
-	Text = Color3.fromRGB(238, 239, 244),
-	TextMuted = Color3.fromRGB(142, 145, 157),
+	Accent = Color3.fromRGB(226, 38, 52),
+	AccentDark = Color3.fromRGB(126, 22, 31),
+	Background = Color3.fromRGB(11, 11, 13),
+	Surface = Color3.fromRGB(17, 17, 19),
+	SurfaceRaised = Color3.fromRGB(22, 22, 25),
+	SurfaceHover = Color3.fromRGB(29, 29, 33),
+	Stroke = Color3.fromRGB(60, 60, 67),
+	StrokeSoft = Color3.fromRGB(39, 39, 44),
+	Text = Color3.fromRGB(235, 235, 238),
+	TextMuted = Color3.fromRGB(157, 157, 165),
 	Success = Color3.fromRGB(69, 201, 126),
 	Warning = Color3.fromRGB(245, 180, 66),
 	Error = Color3.fromRGB(235, 72, 72),
@@ -193,7 +193,7 @@ function Invoke:CreateWindow(config: {[string]: any}?)
 		Name = "Window",
 		AnchorPoint = Vector2.new(0.5, 0.5),
 		Position = config.Position or UDim2.fromScale(0.5, 0.5),
-		Size = config.Size or UDim2.fromOffset(720, 480),
+		Size = config.Size or UDim2.fromOffset(620, 430),
 		BackgroundColor3 = theme.Background,
 		BorderSizePixel = 0,
 		ClipsDescendants = true,
@@ -202,8 +202,8 @@ function Invoke:CreateWindow(config: {[string]: any}?)
 	}) :: Frame
 	window.Root = root
 	window._fullSize = root.Size
-	addCorner(root, 8)
-	addStroke(root, theme.Stroke, 0, 1)
+	addCorner(root, 2)
+	addStroke(root, theme.Accent, 0.15, 1)
 
 	local shadow = create("ImageLabel", {
 		Name = "Shadow",
@@ -213,7 +213,7 @@ function Invoke:CreateWindow(config: {[string]: any}?)
 		BackgroundTransparency = 1,
 		Image = "rbxassetid://6015897843",
 		ImageColor3 = Color3.new(0, 0, 0),
-		ImageTransparency = 0.38,
+		ImageTransparency = 0.68,
 		ScaleType = Enum.ScaleType.Slice,
 		SliceCenter = Rect.new(49, 49, 450, 450),
 		ZIndex = 0,
@@ -236,7 +236,7 @@ function Invoke:CreateWindow(config: {[string]: any}?)
 
 	local topbar = create("Frame", {
 		Name = "Topbar",
-		Size = UDim2.new(1, 0, 0, 52),
+		Size = UDim2.new(1, 0, 0, 29),
 		BackgroundColor3 = theme.Surface,
 		BorderSizePixel = 0,
 		Parent = root,
@@ -244,8 +244,8 @@ function Invoke:CreateWindow(config: {[string]: any}?)
 
 	create("Frame", {
 		Name = "AccentLine",
-		Position = UDim2.new(0, 0, 1, -2),
-		Size = UDim2.new(1, 0, 0, 2),
+		Position = UDim2.new(0, 0, 1, -1),
+		Size = UDim2.new(1, 0, 0, 1),
 		BackgroundColor3 = theme.Accent,
 		BorderSizePixel = 0,
 		Parent = topbar,
@@ -253,40 +253,40 @@ function Invoke:CreateWindow(config: {[string]: any}?)
 
 	local brand = create("TextLabel", {
 		Name = "Brand",
-		Position = UDim2.fromOffset(18, 8),
-		Size = UDim2.fromOffset(34, 34),
-		BackgroundColor3 = theme.Accent,
+		Position = UDim2.fromOffset(8, 4),
+		Size = UDim2.fromOffset(18, 20),
+		BackgroundTransparency = 1,
 		BorderSizePixel = 0,
-		Font = Enum.Font.GothamBold,
-		Text = "I",
-		TextColor3 = Color3.new(1, 1, 1),
-		TextSize = 18,
+		Font = DEFAULT_FONT,
+		Text = ">",
+		TextColor3 = theme.Accent,
+		TextSize = 13,
 		Parent = topbar,
 	}) :: TextLabel
-	addCorner(brand, 6)
 
 	create("TextLabel", {
 		Name = "Title",
-		Position = UDim2.fromOffset(64, 7),
-		Size = UDim2.new(1, -190, 0, 22),
+		Position = UDim2.fromOffset(27, 3),
+		Size = UDim2.new(1, -170, 0, 23),
 		BackgroundTransparency = 1,
-		Font = Enum.Font.GothamBold,
-		Text = config.Title or "Invoke",
+		Font = DEFAULT_FONT,
+		Text = (config.Title or "Invoke") .. "  |  " .. (config.Subtitle or "INTERFACE"),
 		TextColor3 = theme.Text,
-		TextSize = 15,
+		TextSize = 12,
 		TextXAlignment = Enum.TextXAlignment.Left,
 		Parent = topbar,
 	})
 
 	create("TextLabel", {
 		Name = "Subtitle",
-		Position = UDim2.fromOffset(64, 27),
-		Size = UDim2.new(1, -190, 0, 16),
+		Position = UDim2.fromOffset(0, 0),
+		Size = UDim2.fromOffset(0, 0),
 		BackgroundTransparency = 1,
 		Font = DEFAULT_FONT,
-		Text = config.Subtitle or "INTERFACE SYSTEM",
+		Text = "",
 		TextColor3 = theme.TextMuted,
-		TextSize = 10,
+		TextSize = 1,
+		Visible = false,
 		TextXAlignment = Enum.TextXAlignment.Left,
 		Parent = topbar,
 	})
@@ -294,39 +294,39 @@ function Invoke:CreateWindow(config: {[string]: any}?)
 	local keyBadge = create("TextLabel", {
 		Name = "KeyBadge",
 		AnchorPoint = Vector2.new(1, 0.5),
-		Position = UDim2.new(1, -52, 0.5, 0),
-		Size = UDim2.fromOffset(88, 26),
-		BackgroundColor3 = theme.SurfaceRaised,
+		Position = UDim2.new(1, -40, 0.5, 0),
+		Size = UDim2.fromOffset(68, 20),
+		BackgroundColor3 = theme.Background,
 		BorderSizePixel = 0,
 		Font = DEFAULT_FONT,
 		Text = window.ToggleKey.Name:upper(),
 		TextColor3 = theme.TextMuted,
-		TextSize = 10,
+		TextSize = 9,
 		Parent = topbar,
 	}) :: TextLabel
-	addCorner(keyBadge, 4)
+	addCorner(keyBadge, 1)
 	addStroke(keyBadge, theme.StrokeSoft, 0)
 
 	local close = create("TextButton", {
 		Name = "Close",
 		AnchorPoint = Vector2.new(1, 0.5),
-		Position = UDim2.new(1, -13, 0.5, 0),
-		Size = UDim2.fromOffset(26, 26),
+		Position = UDim2.new(1, -7, 0.5, 0),
+		Size = UDim2.fromOffset(20, 20),
 		BackgroundColor3 = theme.SurfaceRaised,
 		BorderSizePixel = 0,
 		AutoButtonColor = false,
-		Font = Enum.Font.GothamBold,
+		Font = DEFAULT_FONT,
 		Text = "X",
 		TextColor3 = theme.TextMuted,
-		TextSize = 11,
+		TextSize = 10,
 		Parent = topbar,
 	}) :: TextButton
-	addCorner(close, 4)
+	addCorner(close, 1)
 
 	local sidebar = create("Frame", {
 		Name = "Sidebar",
-		Position = UDim2.fromOffset(0, 54),
-		Size = UDim2.new(0, 164, 1, -54),
+		Position = UDim2.fromOffset(0, 29),
+		Size = UDim2.new(1, 0, 0, 35),
 		BackgroundColor3 = theme.Surface,
 		BorderSizePixel = 0,
 		Parent = root,
@@ -334,40 +334,43 @@ function Invoke:CreateWindow(config: {[string]: any}?)
 	window.Sidebar = sidebar
 
 	create("Frame", {
-		AnchorPoint = Vector2.new(1, 0),
-		Position = UDim2.new(1, 0, 0, 0),
-		Size = UDim2.new(0, 1, 1, 0),
+		AnchorPoint = Vector2.new(0, 1),
+		Position = UDim2.new(0, 0, 1, 0),
+		Size = UDim2.new(1, 0, 0, 1),
 		BackgroundColor3 = theme.StrokeSoft,
 		BorderSizePixel = 0,
 		Parent = sidebar,
 	})
 
 	create("TextLabel", {
-		Position = UDim2.fromOffset(16, 14),
-		Size = UDim2.new(1, -32, 0, 18),
+		Position = UDim2.fromOffset(0, 0),
+		Size = UDim2.fromOffset(0, 0),
 		BackgroundTransparency = 1,
 		Font = Enum.Font.GothamBold,
-		Text = "WORKSPACE",
+		Text = "",
 		TextColor3 = theme.TextMuted,
 		TextSize = 9,
 		TextXAlignment = Enum.TextXAlignment.Left,
+		Visible = false,
 		Parent = sidebar,
 	})
 
 	local nav = create("ScrollingFrame", {
 		Name = "Navigation",
-		Position = UDim2.fromOffset(8, 42),
-		Size = UDim2.new(1, -16, 1, -84),
+		Position = UDim2.fromOffset(7, 4),
+		Size = UDim2.new(1, -14, 0, 27),
 		BackgroundTransparency = 1,
 		BorderSizePixel = 0,
 		ScrollBarThickness = 0,
 		CanvasSize = UDim2.new(),
-		AutomaticCanvasSize = Enum.AutomaticSize.Y,
+		AutomaticCanvasSize = Enum.AutomaticSize.X,
+		ScrollingDirection = Enum.ScrollingDirection.X,
 		Parent = sidebar,
 	}) :: ScrollingFrame
 	window.Navigation = nav
 	create("UIListLayout", {
-		Padding = UDim.new(0, 5),
+		FillDirection = Enum.FillDirection.Horizontal,
+		Padding = UDim.new(0, 4),
 		SortOrder = Enum.SortOrder.LayoutOrder,
 		Parent = nav,
 	})
@@ -378,18 +381,19 @@ function Invoke:CreateWindow(config: {[string]: any}?)
 		Size = UDim2.new(1, -32, 0, 20),
 		BackgroundTransparency = 1,
 		Font = DEFAULT_FONT,
-		Text = "INVOKE  /  " .. Invoke.Version,
+		Text = "",
 		TextColor3 = theme.TextMuted,
 		TextSize = 9,
 		TextXAlignment = Enum.TextXAlignment.Left,
+		Visible = false,
 		Parent = sidebar,
 	}) :: TextLabel
 	window.Footer = footer
 
 	local content = create("Frame", {
 		Name = "Content",
-		Position = UDim2.fromOffset(164, 54),
-		Size = UDim2.new(1, -164, 1, -54),
+		Position = UDim2.fromOffset(0, 64),
+		Size = UDim2.new(1, 0, 1, -64),
 		BackgroundColor3 = theme.Background,
 		BorderSizePixel = 0,
 		ClipsDescendants = true,
@@ -490,7 +494,7 @@ function Window:SetVisible(visible: boolean)
 		self.Root.Size = UDim2.new(self.Root.Size.X.Scale, math.max(1, self.Root.Size.X.Offset - 16), self.Root.Size.Y.Scale, math.max(1, self.Root.Size.Y.Offset - 16))
 		self.Root.BackgroundTransparency = 0.14
 		tween(self.Root, {
-			Size = self._fullSize or UDim2.fromOffset(720, 480),
+			Size = self._fullSize or UDim2.fromOffset(620, 430),
 			BackgroundTransparency = 0,
 		}, TWEEN_SMOOTH)
 	else
@@ -552,7 +556,7 @@ function Window:Notify(config: {[string]: any} | string)
 		ClipsDescendants = true,
 		Parent = self.NotificationLayer,
 	}) :: Frame
-	addCorner(toast, 6)
+	addCorner(toast, 1)
 	addStroke(toast, theme.Stroke, 0)
 
 	create("Frame", {
@@ -566,7 +570,7 @@ function Window:Notify(config: {[string]: any} | string)
 		Position = UDim2.fromOffset(14, 10),
 		Size = UDim2.new(1, -28, 0, 18),
 		BackgroundTransparency = 1,
-		Font = Enum.Font.GothamBold,
+		Font = DEFAULT_FONT,
 		Text = config.Title or kind:upper(),
 		TextColor3 = theme.Text,
 		TextSize = 11,
@@ -612,9 +616,9 @@ function Window:AddTab(name: string, icon: string?)
 
 	local button = create("TextButton", {
 		Name = name,
-		Size = UDim2.new(1, 0, 0, 36),
-		BackgroundColor3 = theme.Surface,
-		BackgroundTransparency = 1,
+		Size = UDim2.fromOffset(math.max(76, (#name * 8) + 24), 27),
+		BackgroundColor3 = theme.Background,
+		BackgroundTransparency = 0,
 		BorderSizePixel = 0,
 		AutoButtonColor = false,
 		Font = Enum.Font.GothamMedium,
@@ -622,18 +626,18 @@ function Window:AddTab(name: string, icon: string?)
 		LayoutOrder = index,
 		Parent = self.Navigation,
 	}) :: TextButton
-	addCorner(button, 5)
+	addCorner(button, 1)
+	addStroke(button, theme.StrokeSoft, 0)
 
 	local marker = create("Frame", {
 		Name = "Marker",
-		Position = UDim2.fromOffset(0, 8),
-		Size = UDim2.fromOffset(3, 20),
+		Position = UDim2.new(0, 1, 1, -2),
+		Size = UDim2.new(1, -2, 0, 2),
 		BackgroundColor3 = theme.Accent,
 		BackgroundTransparency = 1,
 		BorderSizePixel = 0,
 		Parent = button,
 	}) :: Frame
-	addCorner(marker, 2)
 
 	local iconLabel = create("TextLabel", {
 		Name = "Icon",
@@ -641,29 +645,30 @@ function Window:AddTab(name: string, icon: string?)
 		Size = UDim2.fromOffset(24, 36),
 		BackgroundTransparency = 1,
 		Font = Enum.Font.GothamBold,
-		Text = icon or string.sub(name, 1, 1):upper(),
+		Text = "",
 		TextColor3 = theme.TextMuted,
 		TextSize = 12,
+		Visible = false,
 		Parent = button,
 	}) :: TextLabel
 
 	local nameLabel = create("TextLabel", {
 		Name = "Name",
-		Position = UDim2.fromOffset(40, 0),
-		Size = UDim2.new(1, -48, 1, 0),
+		Position = UDim2.fromOffset(0, 0),
+		Size = UDim2.fromScale(1, 1),
 		BackgroundTransparency = 1,
-		Font = Enum.Font.GothamMedium,
+		Font = DEFAULT_FONT,
 		Text = name,
 		TextColor3 = theme.TextMuted,
 		TextSize = 11,
-		TextXAlignment = Enum.TextXAlignment.Left,
+		TextXAlignment = Enum.TextXAlignment.Center,
 		Parent = button,
 	}) :: TextLabel
 
 	local page = create("Frame", {
 		Name = name,
-		Position = UDim2.fromOffset(14, 14),
-		Size = UDim2.new(1, -28, 1, -28),
+		Position = UDim2.fromOffset(9, 9),
+		Size = UDim2.new(1, -18, 1, -18),
 		BackgroundTransparency = 1,
 		Visible = false,
 		Parent = self.Content,
@@ -676,7 +681,7 @@ function Window:AddTab(name: string, icon: string?)
 
 	local left = create("ScrollingFrame", {
 		Name = "Left",
-		Size = UDim2.new(0.5, -6, 1, 0),
+		Size = UDim2.new(0.5, -5, 1, 0),
 		BackgroundTransparency = 1,
 		BorderSizePixel = 0,
 		CanvasSize = UDim2.new(),
@@ -687,7 +692,7 @@ function Window:AddTab(name: string, icon: string?)
 	}) :: ScrollingFrame
 	local right = left:Clone()
 	right.Name = "Right"
-	right.Position = UDim2.new(0.5, 6, 0, 0)
+	right.Position = UDim2.new(0.5, 5, 0, 0)
 	right.Parent = page
 	tab.Left = left
 	tab.Right = right
@@ -703,12 +708,12 @@ function Window:AddTab(name: string, icon: string?)
 
 	self:_connect(button.MouseEnter, function()
 		if self.CurrentTab ~= tab then
-			tween(button, {BackgroundTransparency = 0.45, BackgroundColor3 = theme.SurfaceRaised})
+			tween(button, {BackgroundColor3 = theme.SurfaceHover})
 		end
 	end)
 	self:_connect(button.MouseLeave, function()
 		if self.CurrentTab ~= tab then
-			tween(button, {BackgroundTransparency = 1})
+			tween(button, {BackgroundColor3 = theme.Background})
 		end
 	end)
 	self:_connect(button.Activated, function()
@@ -741,8 +746,8 @@ function Window:SelectTab(tabOrName: any)
 		local selected = tab == target
 		tab.Page.Visible = selected
 		tween(tab.Button, {
-			BackgroundTransparency = selected and 0 or 1,
-			BackgroundColor3 = theme.SurfaceRaised,
+			BackgroundTransparency = 0,
+			BackgroundColor3 = selected and theme.SurfaceRaised or theme.Background,
 		})
 		tween(tab.Marker, {BackgroundTransparency = selected and 0 or 1})
 		tween(tab.IconLabel, {TextColor3 = selected and theme.Accent or theme.TextMuted})
@@ -774,46 +779,46 @@ function Tab:AddSection(title: string, side: string?)
 		Name = title,
 		Size = UDim2.new(1, -2, 0, 42),
 		AutomaticSize = Enum.AutomaticSize.Y,
-		BackgroundColor3 = theme.Surface,
+		BackgroundColor3 = theme.Background,
 		BorderSizePixel = 0,
 		Parent = column,
 	}) :: Frame
-	addCorner(frame, 6)
-	addStroke(frame, theme.StrokeSoft, 0)
+	addCorner(frame, 1)
+	addStroke(frame, theme.Stroke, 0)
 	section.Frame = frame
 	section.Column = column
 
 	local header = create("Frame", {
 		Name = "Header",
-		Size = UDim2.new(1, 0, 0, 38),
+		Size = UDim2.new(1, 0, 0, 25),
 		BackgroundTransparency = 1,
 		LayoutOrder = 0,
 		Parent = frame,
 	}) :: Frame
 
 	create("Frame", {
-		Position = UDim2.fromOffset(13, 13),
-		Size = UDim2.fromOffset(3, 12),
+		Position = UDim2.fromOffset(9, 8),
+		Size = UDim2.fromOffset(2, 10),
 		BackgroundColor3 = theme.Accent,
 		BorderSizePixel = 0,
 		Parent = header,
 	})
 
 	create("TextLabel", {
-		Position = UDim2.fromOffset(24, 0),
-		Size = UDim2.new(1, -36, 1, 0),
+		Position = UDim2.fromOffset(17, 0),
+		Size = UDim2.new(1, -26, 1, 0),
 		BackgroundTransparency = 1,
-		Font = Enum.Font.GothamBold,
+		Font = DEFAULT_FONT,
 		Text = title:upper(),
 		TextColor3 = theme.Text,
-		TextSize = 10,
+		TextSize = 11,
 		TextXAlignment = Enum.TextXAlignment.Left,
 		Parent = header,
 	})
 
 	create("Frame", {
-		Position = UDim2.new(0, 12, 1, -1),
-		Size = UDim2.new(1, -24, 0, 1),
+		Position = UDim2.new(0, 7, 1, -1),
+		Size = UDim2.new(1, -14, 0, 1),
 		BackgroundColor3 = theme.StrokeSoft,
 		BorderSizePixel = 0,
 		Parent = header,
@@ -833,7 +838,7 @@ function Tab:AddSection(title: string, side: string?)
 		SortOrder = Enum.SortOrder.LayoutOrder,
 		Parent = body,
 	})
-	addPadding(body, 10, 10, 4, 10)
+	addPadding(body, 7, 7, 5, 8)
 	create("UIListLayout", {
 		Padding = UDim.new(0, 0),
 		SortOrder = Enum.SortOrder.LayoutOrder,
@@ -848,12 +853,11 @@ function Section:_row(name: string, height: number): Frame
 	local row = create("Frame", {
 		Name = name,
 		Size = UDim2.new(1, 0, 0, height),
-		BackgroundColor3 = self.Window.Theme.SurfaceRaised,
+		BackgroundColor3 = self.Window.Theme.Surface,
 		BorderSizePixel = 0,
 		Parent = self.Body,
 	}) :: Frame
-	addCorner(row, 4)
-	addStroke(row, self.Window.Theme.StrokeSoft, 0.35)
+	addCorner(row, 1)
 	self.EstimatedHeight += height + 5
 	if self.Column == self.Tab.Left then
 		self.Tab.LeftHeight += height + 5
@@ -921,17 +925,18 @@ function Section:AddButton(config: {[string]: any} | string)
 		config = {Text = config}
 	end
 	local theme = self.Window.Theme
-	local row = self:_row("Button", 36)
+	local row = self:_row("Button", 29)
+	addStroke(row, theme.Stroke, 0)
 	local button = create("TextButton", {
 		Size = UDim2.fromScale(1, 1),
 		BackgroundTransparency = 1,
 		BorderSizePixel = 0,
 		AutoButtonColor = false,
-		Font = Enum.Font.GothamMedium,
-		Text = "  " .. (config.Text or "Button"),
+		Font = DEFAULT_FONT,
+		Text = config.Text or "Button",
 		TextColor3 = theme.Text,
 		TextSize = 11,
-		TextXAlignment = Enum.TextXAlignment.Left,
+		TextXAlignment = Enum.TextXAlignment.Center,
 		Parent = row,
 	}) :: TextButton
 	local arrow = create("TextLabel", {
@@ -943,6 +948,7 @@ function Section:AddButton(config: {[string]: any} | string)
 		Text = ">",
 		TextColor3 = theme.Accent,
 		TextSize = 13,
+		Visible = false,
 		Parent = row,
 	}) :: TextLabel
 
@@ -966,7 +972,7 @@ function Section:AddButton(config: {[string]: any} | string)
 
 	local control = {}
 	function control:SetText(text: string)
-		button.Text = "  " .. text
+		button.Text = text
 	end
 	table.insert(self.Controls, control)
 	return control
@@ -975,14 +981,16 @@ end
 function Section:AddToggle(config: {[string]: any})
 	local theme = self.Window.Theme
 	local value = config.Default == true
-	local row = self:_row("Toggle", 36)
+	local row = self:_row("Toggle", 25)
+	row.BackgroundTransparency = 1
 	local button = create("TextButton", {
-		Size = UDim2.fromScale(1, 1),
+		Position = UDim2.fromOffset(25, 0),
+		Size = UDim2.new(1, -25, 1, 0),
 		BackgroundTransparency = 1,
 		BorderSizePixel = 0,
 		AutoButtonColor = false,
-		Font = Enum.Font.GothamMedium,
-		Text = "  " .. (config.Text or "Toggle"),
+		Font = DEFAULT_FONT,
+		Text = config.Text or "Toggle",
 		TextColor3 = theme.Text,
 		TextSize = 11,
 		TextXAlignment = Enum.TextXAlignment.Left,
@@ -990,29 +998,30 @@ function Section:AddToggle(config: {[string]: any})
 	}) :: TextButton
 
 	local track = create("Frame", {
-		AnchorPoint = Vector2.new(1, 0.5),
-		Position = UDim2.new(1, -10, 0.5, 0),
-		Size = UDim2.fromOffset(34, 18),
-		BackgroundColor3 = value and theme.Accent or theme.Stroke,
+		AnchorPoint = Vector2.new(0, 0.5),
+		Position = UDim2.new(0, 4, 0.5, 0),
+		Size = UDim2.fromOffset(14, 14),
+		BackgroundColor3 = theme.Background,
 		BorderSizePixel = 0,
 		Parent = row,
 	}) :: Frame
-	addCorner(track, 9)
+	addCorner(track, 1)
+	addStroke(track, value and theme.Accent or theme.Stroke, 0)
 	local knob = create("Frame", {
 		AnchorPoint = Vector2.new(0.5, 0.5),
-		Position = value and UDim2.new(1, -9, 0.5, 0) or UDim2.new(0, 9, 0.5, 0),
-		Size = UDim2.fromOffset(12, 12),
-		BackgroundColor3 = Color3.new(1, 1, 1),
+		Position = UDim2.fromScale(0.5, 0.5),
+		Size = UDim2.fromOffset(8, 8),
+		BackgroundColor3 = theme.Accent,
+		BackgroundTransparency = value and 0 or 1,
 		BorderSizePixel = 0,
 		Parent = track,
 	}) :: Frame
-	addCorner(knob, 6)
+	addCorner(knob, 1)
 
 	local control = {}
 	function control:Set(newValue: boolean, silent: boolean?)
 		value = newValue == true
-		tween(track, {BackgroundColor3 = value and theme.Accent or theme.Stroke})
-		tween(knob, {Position = value and UDim2.new(1, -9, 0.5, 0) or UDim2.new(0, 9, 0.5, 0)}, TWEEN_SMOOTH)
+		tween(knob, {BackgroundTransparency = value and 0 or 1})
 		if not silent then
 			safeCall(config.Callback, value)
 		end
@@ -1022,10 +1031,10 @@ function Section:AddToggle(config: {[string]: any})
 	end
 
 	self.Window:_connect(button.MouseEnter, function()
-		tween(row, {BackgroundColor3 = theme.SurfaceHover})
+		tween(button, {TextColor3 = theme.Accent})
 	end)
 	self.Window:_connect(button.MouseLeave, function()
-		tween(row, {BackgroundColor3 = theme.SurfaceRaised})
+		tween(button, {TextColor3 = theme.Text})
 	end)
 	self.Window:_connect(button.Activated, function()
 		control:Set(not value)
@@ -1047,13 +1056,14 @@ function Section:AddSlider(config: {[string]: any})
 	end
 	local value = math.clamp(config.Default or minimum, minimum, maximum)
 	local dragging = false
-	local row = self:_row("Slider", 54)
+	local row = self:_row("Slider", 45)
+	row.BackgroundTransparency = 1
 
 	create("TextLabel", {
-		Position = UDim2.fromOffset(10, 5),
+		Position = UDim2.fromOffset(2, 1),
 		Size = UDim2.new(1, -80, 0, 20),
 		BackgroundTransparency = 1,
-		Font = Enum.Font.GothamMedium,
+		Font = DEFAULT_FONT,
 		Text = config.Text or "Slider",
 		TextColor3 = theme.Text,
 		TextSize = 11,
@@ -1063,7 +1073,7 @@ function Section:AddSlider(config: {[string]: any})
 
 	local valueLabel = create("TextLabel", {
 		AnchorPoint = Vector2.new(1, 0),
-		Position = UDim2.new(1, -10, 0, 5),
+		Position = UDim2.new(1, -2, 0, 1),
 		Size = UDim2.fromOffset(62, 20),
 		BackgroundTransparency = 1,
 		Font = DEFAULT_FONT,
@@ -1075,28 +1085,30 @@ function Section:AddSlider(config: {[string]: any})
 	}) :: TextLabel
 
 	local track = create("TextButton", {
-		Position = UDim2.new(0, 10, 1, -17),
-		Size = UDim2.new(1, -20, 0, 6),
-		BackgroundColor3 = theme.Stroke,
+		Position = UDim2.new(0, 2, 1, -17),
+		Size = UDim2.new(1, -4, 0, 13),
+		BackgroundColor3 = theme.SurfaceRaised,
 		BorderSizePixel = 0,
 		AutoButtonColor = false,
 		Text = "",
 		Parent = row,
 	}) :: TextButton
-	addCorner(track, 3)
+	addCorner(track, 1)
+	addStroke(track, theme.Stroke, 0)
 	local fill = create("Frame", {
 		Size = UDim2.fromScale((value - minimum) / math.max(maximum - minimum, 0.0001), 1),
 		BackgroundColor3 = theme.Accent,
 		BorderSizePixel = 0,
 		Parent = track,
 	}) :: Frame
-	addCorner(fill, 3)
+	addCorner(fill, 1)
 	local knob = create("Frame", {
 		AnchorPoint = Vector2.new(0.5, 0.5),
 		Position = UDim2.new(1, 0, 0.5, 0),
 		Size = UDim2.fromOffset(10, 10),
 		BackgroundColor3 = Color3.new(1, 1, 1),
 		BorderSizePixel = 0,
+		Visible = false,
 		Parent = fill,
 	}) :: Frame
 	addCorner(knob, 5)
@@ -1146,15 +1158,16 @@ function Section:AddDropdown(config: {[string]: any})
 	local options = config.Options or {}
 	local value = config.Default
 	local open = false
-	local row = self:_row("Dropdown", 36)
+	local row = self:_row("Dropdown", 30)
 	row.ClipsDescendants = true
+	addStroke(row, theme.Stroke, 0)
 
 	local button = create("TextButton", {
-		Size = UDim2.new(1, 0, 0, 36),
+		Size = UDim2.new(1, 0, 0, 30),
 		BackgroundTransparency = 1,
 		BorderSizePixel = 0,
 		AutoButtonColor = false,
-		Font = Enum.Font.GothamMedium,
+		Font = DEFAULT_FONT,
 		Text = "  " .. (config.Text or "Dropdown"),
 		TextColor3 = theme.Text,
 		TextSize = 11,
@@ -1163,8 +1176,8 @@ function Section:AddDropdown(config: {[string]: any})
 	}) :: TextButton
 	local selected = create("TextLabel", {
 		AnchorPoint = Vector2.new(1, 0),
-		Position = UDim2.new(1, -30, 0, 0),
-		Size = UDim2.new(0.5, 0, 0, 36),
+		Position = UDim2.new(1, -28, 0, 0),
+		Size = UDim2.new(0.5, 0, 0, 30),
 		BackgroundTransparency = 1,
 		Font = DEFAULT_FONT,
 		Text = value and tostring(value) or "SELECT",
@@ -1176,8 +1189,8 @@ function Section:AddDropdown(config: {[string]: any})
 	}) :: TextLabel
 	local caret = create("TextLabel", {
 		AnchorPoint = Vector2.new(1, 0),
-		Position = UDim2.new(1, -10, 0, 0),
-		Size = UDim2.fromOffset(12, 36),
+		Position = UDim2.new(1, -8, 0, 0),
+		Size = UDim2.fromOffset(12, 30),
 		BackgroundTransparency = 1,
 		Font = DEFAULT_FONT,
 		Text = "+",
@@ -1186,7 +1199,7 @@ function Section:AddDropdown(config: {[string]: any})
 		Parent = row,
 	}) :: TextLabel
 	local list = create("Frame", {
-		Position = UDim2.fromOffset(8, 38),
+		Position = UDim2.fromOffset(5, 32),
 		Size = UDim2.new(1, -16, 0, 0),
 		BackgroundTransparency = 1,
 		Parent = row,
@@ -1206,7 +1219,7 @@ function Section:AddDropdown(config: {[string]: any})
 		table.clear(optionButtons)
 		for order, option in ipairs(options) do
 			local optionButton = create("TextButton", {
-				Size = UDim2.new(1, 0, 0, 26),
+				Size = UDim2.new(1, 0, 0, 24),
 				BackgroundColor3 = theme.Background,
 				BorderSizePixel = 0,
 				AutoButtonColor = false,
@@ -1218,7 +1231,8 @@ function Section:AddDropdown(config: {[string]: any})
 				LayoutOrder = order,
 				Parent = list,
 			}) :: TextButton
-			addCorner(optionButton, 3)
+			addCorner(optionButton, 1)
+			addStroke(optionButton, theme.StrokeSoft, 0)
 			table.insert(optionButtons, optionButton)
 			self.Window:_connect(optionButton.MouseEnter, function()
 				tween(optionButton, {BackgroundColor3 = theme.SurfaceHover, TextColor3 = theme.Text})
@@ -1234,9 +1248,9 @@ function Section:AddDropdown(config: {[string]: any})
 	end
 	function control:SetOpen(state: boolean)
 		open = state
-		local listHeight = #options * 29
+		local listHeight = #options * 27
 		list.Size = UDim2.new(1, -16, 0, listHeight)
-		tween(row, {Size = UDim2.new(1, 0, 0, open and (44 + listHeight) or 36)}, TWEEN_SMOOTH)
+		tween(row, {Size = UDim2.new(1, 0, 0, open and (37 + listHeight) or 30)}, TWEEN_SMOOTH)
 		caret.Text = open and "-" or "+"
 	end
 	function control:Set(newValue: any, silent: boolean?)
@@ -1274,12 +1288,13 @@ end
 
 function Section:AddTextbox(config: {[string]: any})
 	local theme = self.Window.Theme
-	local row = self:_row("Textbox", 58)
+	local row = self:_row("Textbox", 51)
+	row.BackgroundTransparency = 1
 	create("TextLabel", {
-		Position = UDim2.fromOffset(10, 4),
+		Position = UDim2.fromOffset(2, 1),
 		Size = UDim2.new(1, -20, 0, 18),
 		BackgroundTransparency = 1,
-		Font = Enum.Font.GothamMedium,
+		Font = DEFAULT_FONT,
 		Text = config.Text or "Input",
 		TextColor3 = theme.Text,
 		TextSize = 10,
@@ -1287,8 +1302,8 @@ function Section:AddTextbox(config: {[string]: any})
 		Parent = row,
 	})
 	local box = create("TextBox", {
-		Position = UDim2.fromOffset(8, 25),
-		Size = UDim2.new(1, -16, 0, 25),
+		Position = UDim2.fromOffset(2, 23),
+		Size = UDim2.new(1, -4, 0, 24),
 		BackgroundColor3 = theme.Background,
 		BorderSizePixel = 0,
 		ClearTextOnFocus = config.ClearOnFocus == true,
@@ -1301,7 +1316,7 @@ function Section:AddTextbox(config: {[string]: any})
 		TextXAlignment = Enum.TextXAlignment.Left,
 		Parent = row,
 	}) :: TextBox
-	addCorner(box, 3)
+	addCorner(box, 1)
 	addStroke(box, theme.StrokeSoft, 0)
 	addPadding(box, 8, 8, 0, 0)
 
@@ -1332,12 +1347,13 @@ function Section:AddKeybind(config: {[string]: any})
 	local theme = self.Window.Theme
 	local value = config.Default or Enum.KeyCode.Unknown
 	local listening = false
-	local row = self:_row("Keybind", 36)
+	local row = self:_row("Keybind", 29)
+	addStroke(row, theme.StrokeSoft, 0)
 	create("TextLabel", {
 		Position = UDim2.fromOffset(10, 0),
 		Size = UDim2.new(1, -100, 1, 0),
 		BackgroundTransparency = 1,
-		Font = Enum.Font.GothamMedium,
+		Font = DEFAULT_FONT,
 		Text = config.Text or "Keybind",
 		TextColor3 = theme.Text,
 		TextSize = 11,
@@ -1346,8 +1362,8 @@ function Section:AddKeybind(config: {[string]: any})
 	})
 	local bindButton = create("TextButton", {
 		AnchorPoint = Vector2.new(1, 0.5),
-		Position = UDim2.new(1, -8, 0.5, 0),
-		Size = UDim2.fromOffset(80, 24),
+		Position = UDim2.new(1, -4, 0.5, 0),
+		Size = UDim2.fromOffset(78, 21),
 		BackgroundColor3 = theme.Background,
 		BorderSizePixel = 0,
 		AutoButtonColor = false,
@@ -1357,7 +1373,7 @@ function Section:AddKeybind(config: {[string]: any})
 		TextSize = 9,
 		Parent = row,
 	}) :: TextButton
-	addCorner(bindButton, 3)
+	addCorner(bindButton, 1)
 	addStroke(bindButton, theme.StrokeSoft, 0)
 
 	local control = {}
@@ -1397,15 +1413,16 @@ function Section:AddColorPicker(config: {[string]: any})
 	local theme = self.Window.Theme
 	local value = config.Default or theme.Accent
 	local open = false
-	local row = self:_row("ColorPicker", 36)
+	local row = self:_row("ColorPicker", 29)
 	row.ClipsDescendants = true
+	addStroke(row, theme.StrokeSoft, 0)
 
 	local button = create("TextButton", {
-		Size = UDim2.new(1, 0, 0, 36),
+		Size = UDim2.new(1, 0, 0, 29),
 		BackgroundTransparency = 1,
 		BorderSizePixel = 0,
 		AutoButtonColor = false,
-		Font = Enum.Font.GothamMedium,
+		Font = DEFAULT_FONT,
 		Text = "  " .. (config.Text or "Color"),
 		TextColor3 = theme.Text,
 		TextSize = 11,
@@ -1414,17 +1431,17 @@ function Section:AddColorPicker(config: {[string]: any})
 	}) :: TextButton
 	local swatch = create("Frame", {
 		AnchorPoint = Vector2.new(1, 0.5),
-		Position = UDim2.new(1, -10, 0, 18),
-		Size = UDim2.fromOffset(28, 18),
+		Position = UDim2.new(1, -5, 0, 14),
+		Size = UDim2.fromOffset(28, 16),
 		BackgroundColor3 = value,
 		BorderSizePixel = 0,
 		Parent = row,
 	}) :: Frame
-	addCorner(swatch, 3)
+	addCorner(swatch, 1)
 	addStroke(swatch, theme.Stroke, 0)
 
 	local panel = create("Frame", {
-		Position = UDim2.fromOffset(8, 40),
+		Position = UDim2.fromOffset(5, 34),
 		Size = UDim2.new(1, -16, 0, 92),
 		BackgroundTransparency = 1,
 		Parent = row,
@@ -1463,7 +1480,7 @@ function Section:AddColorPicker(config: {[string]: any})
 	end
 	function control:SetOpen(state: boolean)
 		open = state
-		tween(row, {Size = UDim2.new(1, 0, 0, open and 140 or 36)}, TWEEN_SMOOTH)
+		tween(row, {Size = UDim2.new(1, 0, 0, open and 132 or 29)}, TWEEN_SMOOTH)
 	end
 
 	for index, channel in ipairs(channels) do
