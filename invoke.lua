@@ -1,6 +1,6 @@
 --!strict
 -- Invoke UI Library
--- A compact, red-accented Roblox interface library.
+-- A compact Roblox interface library with readable, configurable controls.
 -- Place this file in a ModuleScript and require it from a LocalScript.
 
 local Players = game:GetService("Players")
@@ -10,7 +10,7 @@ local RunService = game:GetService("RunService")
 
 local Invoke = {}
 Invoke.__index = Invoke
-Invoke.Version = "4.1.0"
+Invoke.Version = "4.2.0"
 
 Invoke.Theme = {
 	Accent = Color3.fromRGB(66, 151, 255),
@@ -21,14 +21,14 @@ Invoke.Theme = {
 	SurfaceHover = Color3.fromRGB(28, 35, 47),
 	Stroke = Color3.fromRGB(37, 44, 56),
 	StrokeSoft = Color3.fromRGB(27, 33, 43),
-	Text = Color3.fromRGB(177, 186, 199),
-	TextMuted = Color3.fromRGB(93, 103, 119),
+	Text = Color3.fromRGB(214, 220, 230),
+	TextMuted = Color3.fromRGB(146, 157, 175),
 	Success = Color3.fromRGB(69, 201, 126),
 	Warning = Color3.fromRGB(245, 180, 66),
 	Error = Color3.fromRGB(235, 72, 72),
 }
 
-local DEFAULT_FONT = Enum.Font.Code
+local DEFAULT_FONT = Enum.Font.SourceSans
 local TWEEN_FAST = TweenInfo.new(0.14, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
 local TWEEN_SMOOTH = TweenInfo.new(0.22, Enum.EasingStyle.Quint, Enum.EasingDirection.Out)
 
@@ -48,6 +48,9 @@ local function create(className: string, properties: {[string]: any}?): Instance
 
 	if parent then
 		object.Parent = parent
+	end
+	if object:IsA("TextLabel") or object:IsA("TextButton") or object:IsA("TextBox") then
+		object.TextSize = math.max(object.TextSize, 13)
 	end
 
 	return object
@@ -193,7 +196,7 @@ function Invoke:CreateWindow(config: {[string]: any}?)
 		Name = "Window",
 		AnchorPoint = Vector2.new(0.5, 0.5),
 		Position = config.Position or UDim2.fromScale(0.5, 0.5),
-		Size = config.Size or UDim2.fromOffset(480, 440),
+		Size = config.Size or UDim2.fromOffset(600, 530),
 		BackgroundColor3 = theme.Background,
 		BorderSizePixel = 0,
 		ClipsDescendants = true,
@@ -205,7 +208,7 @@ function Invoke:CreateWindow(config: {[string]: any}?)
 	addCorner(root, 5)
 	addStroke(root, theme.StrokeSoft, 0, 1)
 
-	local desiredScale = config.Scale or 1.45
+	local desiredScale = math.clamp(config.Scale or 1, 0.5, 2)
 	local interfaceScale = create("UIScale", {
 		Scale = desiredScale,
 		Parent = root,
@@ -220,10 +223,10 @@ function Invoke:CreateWindow(config: {[string]: any}?)
 		end
 
 		local viewport = camera.ViewportSize
-		local baseWidth = math.max(root.Size.X.Offset, 1)
-		local baseHeight = math.max(root.Size.Y.Offset, 1)
-		local maximumX = math.max((viewport.X - 32) / baseWidth, 0.5)
-		local maximumY = math.max((viewport.Y - 64) / baseHeight, 0.5)
+		local baseWidth = math.max(viewport.X * root.Size.X.Scale + root.Size.X.Offset, 1)
+		local baseHeight = math.max(viewport.Y * root.Size.Y.Scale + root.Size.Y.Offset, 1)
+		local maximumX = math.max((viewport.X - 32) / baseWidth, 0.1)
+		local maximumY = math.max((viewport.Y - 64) / baseHeight, 0.1)
 		interfaceScale.Scale = math.min(desiredScale, maximumX, maximumY)
 	end
 	fitScaleToViewport()
@@ -247,18 +250,19 @@ function Invoke:CreateWindow(config: {[string]: any}?)
 	local function syncShadow()
 		shadow.Position = root.Position
 		shadow.Size = UDim2.fromOffset(
-			(root.Size.X.Offset * interfaceScale.Scale) + 44,
-			(root.Size.Y.Offset * interfaceScale.Scale) + 44
+			root.AbsoluteSize.X + 44,
+			root.AbsoluteSize.Y + 44
 		)
 	end
 	window:_connect(root:GetPropertyChangedSignal("Position"), syncShadow)
 	window:_connect(root:GetPropertyChangedSignal("Size"), syncShadow)
+	window:_connect(root:GetPropertyChangedSignal("AbsoluteSize"), syncShadow)
 	window:_connect(interfaceScale:GetPropertyChangedSignal("Scale"), syncShadow)
 	syncShadow()
 
 	local topbar = create("Frame", {
 		Name = "Topbar",
-		Size = UDim2.new(1, 0, 0, 20),
+		Size = UDim2.new(1, 0, 0, 32),
 		BackgroundColor3 = theme.Surface,
 		BorderSizePixel = 0,
 		Parent = root,
@@ -266,8 +270,8 @@ function Invoke:CreateWindow(config: {[string]: any}?)
 
 	create("Frame", {
 		Name = "AccentLine",
-		Position = UDim2.new(0, 0, 0, 0),
-		Size = UDim2.new(1, 0, 0, 1),
+		Position = UDim2.new(0, 8, 1, -1),
+		Size = UDim2.new(1, -16, 0, 1),
 		BackgroundColor3 = theme.Accent,
 		BorderSizePixel = 0,
 		Parent = topbar,
@@ -283,19 +287,19 @@ function Invoke:CreateWindow(config: {[string]: any}?)
 		Text = "✣",
 		TextColor3 = theme.Accent,
 		TextSize = 12,
-		Visible = true,
+		Visible = false,
 		Parent = topbar,
 	}) :: TextLabel
 
 	create("TextLabel", {
 		Name = "Title",
-		Position = UDim2.fromOffset(23, 1),
-		Size = UDim2.new(1, -78, 0, 18),
+		Position = UDim2.fromOffset(12, 0),
+		Size = UDim2.new(1, -90, 0, 32),
 		BackgroundTransparency = 1,
 		Font = DEFAULT_FONT,
 		Text = config.Title or "Invoke",
 		TextColor3 = theme.Text,
-		TextSize = 10,
+		TextSize = 16,
 		TextXAlignment = Enum.TextXAlignment.Left,
 		Parent = topbar,
 	})
@@ -318,7 +322,7 @@ function Invoke:CreateWindow(config: {[string]: any}?)
 		Name = "KeyBadge",
 		AnchorPoint = Vector2.new(1, 0.5),
 		Position = UDim2.new(1, -7, 0.5, 0),
-		Size = UDim2.fromOffset(34, 13),
+		Size = UDim2.fromOffset(55, 20),
 		BackgroundColor3 = theme.SurfaceRaised,
 		BorderSizePixel = 0,
 		Font = DEFAULT_FONT,
@@ -349,8 +353,8 @@ function Invoke:CreateWindow(config: {[string]: any}?)
 
 	local sidebar = create("Frame", {
 		Name = "Sidebar",
-		Position = UDim2.fromOffset(6, 22),
-		Size = UDim2.new(1, -12, 0, 25),
+		Position = UDim2.fromOffset(8, 37),
+		Size = UDim2.new(1, -16, 0, 30),
 		BackgroundColor3 = theme.Surface,
 		BorderSizePixel = 0,
 		Parent = root,
@@ -384,7 +388,7 @@ function Invoke:CreateWindow(config: {[string]: any}?)
 	local nav = create("ScrollingFrame", {
 		Name = "Navigation",
 		Position = UDim2.fromOffset(3, 1),
-		Size = UDim2.new(1, -6, 0, 23),
+		Size = UDim2.new(1, -6, 0, 28),
 		BackgroundTransparency = 1,
 		BorderSizePixel = 0,
 		ScrollBarThickness = 0,
@@ -418,8 +422,8 @@ function Invoke:CreateWindow(config: {[string]: any}?)
 
 	local content = create("Frame", {
 		Name = "Content",
-		Position = UDim2.fromOffset(6, 51),
-		Size = UDim2.new(1, -12, 1, -57),
+		Position = UDim2.fromOffset(8, 74),
+		Size = UDim2.new(1, -16, 1, -82),
 		BackgroundColor3 = theme.Background,
 		BorderSizePixel = 0,
 		ClipsDescendants = true,
@@ -447,7 +451,7 @@ function Invoke:CreateWindow(config: {[string]: any}?)
 	-- Window dragging, constrained to the viewport.
 	do
 		local dragging = false
-		local dragStart = Vector2.zero
+		local dragStart = Vector3.zero
 		local startPosition = root.Position
 		local dragInput: InputObject? = nil
 
@@ -495,7 +499,7 @@ function Invoke:CreateWindow(config: {[string]: any}?)
 	end)
 
 	window:_connect(UserInputService.InputBegan, function(input: InputObject, processed: boolean)
-		if not processed and input.KeyCode == window.ToggleKey then
+		if not processed and not window.BindingCapture and not UserInputService:GetFocusedTextBox() and input.KeyCode == window.ToggleKey then
 			window:SetVisible(not window.Visible)
 		end
 	end)
@@ -510,35 +514,9 @@ function Window:_connect(signal: RBXScriptSignal, callback: (...any) -> ()): RBX
 end
 
 function Window:SetVisible(visible: boolean)
-	if self.Destroyed or self.Visible == visible then
-		return
-	end
-
+	if self.Destroyed then return end
 	self.Visible = visible
-	if visible then
-		self.Gui.Enabled = true
-		self.Shadow.Visible = true
-		self.Root.Size = UDim2.new(self.Root.Size.X.Scale, math.max(1, self.Root.Size.X.Offset - 16), self.Root.Size.Y.Scale, math.max(1, self.Root.Size.Y.Offset - 16))
-		self.Root.BackgroundTransparency = 0.14
-		tween(self.Root, {
-			Size = self._fullSize or UDim2.fromOffset(620, 430),
-			BackgroundTransparency = 0,
-		}, TWEEN_SMOOTH)
-	else
-		self._fullSize = self.Root.Size
-		local hideTween = tween(self.Root, {
-			Size = UDim2.new(self.Root.Size.X.Scale, self.Root.Size.X.Offset - 16, self.Root.Size.Y.Scale, self.Root.Size.Y.Offset - 16),
-			BackgroundTransparency = 0.14,
-		}, TWEEN_FAST)
-		hideTween.Completed:Once(function()
-			if not self.Visible and not self.Destroyed then
-				self.Gui.Enabled = false
-				self.Shadow.Visible = false
-				self.Root.Size = self._fullSize
-				self.Root.BackgroundTransparency = 0
-			end
-		end)
-	end
+	self.Gui.Enabled = visible
 end
 
 function Window:Toggle()
@@ -643,7 +621,7 @@ function Window:AddTab(name: string, icon: string?)
 
 	local button = create("TextButton", {
 		Name = name,
-		Size = UDim2.fromOffset(math.max(48, (#name * 5) + 12), 23),
+		Size = UDim2.fromOffset(math.max(58, (#name * 6) + 16), 28),
 		BackgroundColor3 = theme.SurfaceRaised,
 		BackgroundTransparency = 1,
 		BorderSizePixel = 0,
@@ -729,7 +707,7 @@ function Window:AddTab(name: string, icon: string?)
 			SortOrder = Enum.SortOrder.LayoutOrder,
 			Parent = column,
 		})
-		addPadding(column, 0, 4, 0, 8)
+		addPadding(column, 2, 3, 2, 3)
 	end
 
 	self:_connect(button.MouseEnter, function()
@@ -816,7 +794,7 @@ function Tab:AddSection(title: string, side: string?)
 
 	local header = create("Frame", {
 		Name = "Header",
-		Size = UDim2.new(1, 0, 0, 21),
+		Size = UDim2.new(1, 0, 0, 28),
 		BackgroundTransparency = 1,
 		LayoutOrder = 0,
 		Parent = frame,
@@ -824,15 +802,15 @@ function Tab:AddSection(title: string, side: string?)
 
 	create("Frame", {
 		Position = UDim2.fromOffset(0, 0),
-		Size = UDim2.new(1, 0, 0, 2),
+		Size = UDim2.new(1, 0, 0, 1),
 		BackgroundColor3 = theme.Accent,
 		BorderSizePixel = 0,
 		Parent = header,
 	})
 
 	create("TextLabel", {
-		Position = UDim2.fromOffset(8, 3),
-		Size = UDim2.fromOffset(0, 18),
+		Position = UDim2.fromOffset(8, 4),
+		Size = UDim2.fromOffset(0, 22),
 		AutomaticSize = Enum.AutomaticSize.X,
 		BackgroundTransparency = 1,
 		Font = DEFAULT_FONT,
@@ -904,19 +882,32 @@ function Section:_row(name: string, height: number): Frame
 end
 
 function Section:SetFill(fill: boolean)
-	if fill then
-		self.Frame.AutomaticSize = Enum.AutomaticSize.None
-		self.Frame.Size = UDim2.new(1, -1, 1, -1)
-	else
-		self.Frame.Size = UDim2.new(1, -1, 0, 28)
-		self.Frame.AutomaticSize = Enum.AutomaticSize.Y
+	self.Fill = fill
+	if not self._resizeFill then
+		local layout = self.Body:FindFirstChildOfClass("UIListLayout")
+		local function resize()
+			if self.Fill then
+				local scale = self.Window.InterfaceScale.Scale
+				local height = math.max(self.Column.AbsoluteSize.Y / scale - 7,
+					layout.AbsoluteContentSize.Y / scale + 38)
+				self.Frame.AutomaticSize = Enum.AutomaticSize.None
+				self.Frame.Size = UDim2.new(1, -1, 0, height)
+			else
+				self.Frame.Size = UDim2.new(1, -1, 0, 28)
+				self.Frame.AutomaticSize = Enum.AutomaticSize.Y
+			end
+		end
+		self.Window:_connect(layout:GetPropertyChangedSignal("AbsoluteContentSize"), resize)
+		self.Window:_connect(self.Column:GetPropertyChangedSignal("AbsoluteSize"), resize)
+		self._resizeFill = resize
 	end
+	self._resizeFill()
 	return self
 end
 
 function Section:AddLabel(text: string)
 	local theme = self.Window.Theme
-	local row = self:_row("Label", 14)
+	local row = self:_row("Label", 18)
 	row.BackgroundTransparency = 1
 	local label = create("TextLabel", {
 		Size = UDim2.new(1, -8, 1, 0),
@@ -1028,38 +1019,50 @@ end
 function Section:AddToggle(config: {[string]: any})
 	local theme = self.Window.Theme
 	local value = config.Default == true
-	local row = self:_row("Toggle", 18)
+	local row = self:_row("Toggle", 23)
 	row.BackgroundTransparency = 1
 	local button = create("TextButton", {
-		Position = UDim2.fromOffset(18, 0),
-		Size = UDim2.new(1, -18, 1, 0),
+		Position = UDim2.fromOffset(0, 0),
+		Size = UDim2.fromScale(1, 1),
 		BackgroundTransparency = 1,
 		BorderSizePixel = 0,
 		AutoButtonColor = false,
 		Font = DEFAULT_FONT,
-		Text = config.Text or "Toggle",
+		Text = "",
 		TextColor3 = theme.Text,
 		TextSize = 9,
 		TextXAlignment = Enum.TextXAlignment.Left,
 		Parent = row,
 	}) :: TextButton
+	local label = create("TextLabel", {
+		Position = UDim2.fromOffset(39, 0),
+		Size = UDim2.new(1, (config.Badge or config.BadgeColor) and -77 or -41, 1, 0),
+		BackgroundTransparency = 1,
+		Font = DEFAULT_FONT,
+		Text = config.Text or "Toggle",
+		TextSize = 13,
+		TextColor3 = theme.Text,
+		TextTruncate = Enum.TextTruncate.AtEnd,
+		TextXAlignment = Enum.TextXAlignment.Left,
+		Parent = button,
+	})
 
 	local track = create("Frame", {
 		AnchorPoint = Vector2.new(0, 0.5),
 		Position = UDim2.new(0, 1, 0.5, 0),
-		Size = UDim2.fromOffset(11, 11),
-		BackgroundColor3 = theme.SurfaceRaised,
+		Size = UDim2.fromOffset(29, 14),
+		BackgroundColor3 = value and theme.Accent or theme.Stroke,
 		BorderSizePixel = 0,
-		Parent = row,
+		Parent = button,
 	}) :: Frame
 	addCorner(track, 6)
 	local trackStroke = addStroke(track, value and theme.Accent or theme.Stroke, 0)
 	local knob = create("Frame", {
 		AnchorPoint = Vector2.new(0.5, 0.5),
-		Position = UDim2.fromScale(0.5, 0.5),
-		Size = UDim2.fromOffset(5, 5),
-		BackgroundColor3 = theme.Accent,
-		BackgroundTransparency = value and 0 or 1,
+		Position = UDim2.new(0, value and 22 or 7, 0.5, 0),
+		Size = UDim2.fromOffset(8, 8),
+		BackgroundColor3 = Color3.fromRGB(235, 242, 255),
+		BackgroundTransparency = 0,
 		BorderSizePixel = 0,
 		Parent = track,
 	}) :: Frame
@@ -1087,7 +1090,8 @@ function Section:AddToggle(config: {[string]: any})
 	local control = {}
 	function control:Set(newValue: boolean, silent: boolean?)
 		value = newValue == true
-		tween(knob, {BackgroundTransparency = value and 0 or 1})
+		tween(knob, {Position = UDim2.new(0, value and 22 or 7, 0.5, 0)})
+		tween(track, {BackgroundColor3 = value and theme.Accent or theme.Stroke})
 		tween(trackStroke, {Color = value and theme.Accent or theme.Stroke})
 		if not silent then
 			safeCall(config.Callback, value)
@@ -1098,10 +1102,10 @@ function Section:AddToggle(config: {[string]: any})
 	end
 
 	self.Window:_connect(button.MouseEnter, function()
-		tween(button, {TextColor3 = theme.Accent})
+		tween(label, {TextColor3 = theme.Accent})
 	end)
 	self.Window:_connect(button.MouseLeave, function()
-		tween(button, {TextColor3 = theme.Text})
+		tween(label, {TextColor3 = theme.Text})
 	end)
 	self.Window:_connect(button.Activated, function()
 		control:Set(not value)
@@ -1123,6 +1127,7 @@ function Section:AddSlider(config: {[string]: any})
 	end
 	local value = math.clamp(config.Default or minimum, minimum, maximum)
 	local dragging = false
+	local activeInput: InputObject? = nil
 	local row = self:_row("Slider", 26)
 	row.BackgroundTransparency = 1
 
@@ -1179,10 +1184,19 @@ function Section:AddSlider(config: {[string]: any})
 		Parent = fill,
 	}) :: Frame
 	addCorner(knob, 4)
+	local hitArea = create("TextButton", {
+		Name = "SliderHitArea",
+		Position = UDim2.new(0, 0, 1, -15),
+		Size = UDim2.new(1, 0, 0, 15),
+		BackgroundTransparency = 1,
+		Text = "",
+		ZIndex = 4,
+		Parent = row,
+	}) :: TextButton
 
 	local control = {}
 	function control:Set(newValue: number, silent: boolean?)
-		newValue = math.clamp(roundToStep(newValue, step), minimum, maximum)
+		newValue = math.clamp(minimum + roundToStep(newValue - minimum, step), minimum, maximum)
 		value = newValue
 		local alpha = (value - minimum) / math.max(maximum - minimum, 0.0001)
 		fill.Size = UDim2.fromScale(alpha, 1)
@@ -1200,20 +1214,22 @@ function Section:AddSlider(config: {[string]: any})
 		control:Set(minimum + ((maximum - minimum) * alpha))
 	end
 
-	self.Window:_connect(track.InputBegan, function(input: InputObject)
+	self.Window:_connect(hitArea.InputBegan, function(input: InputObject)
 		if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
 			dragging = true
+			activeInput = input
 			setFromInput(input)
 		end
 	end)
 	self.Window:_connect(UserInputService.InputChanged, function(input: InputObject)
-		if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
+		if dragging and (input == activeInput or (activeInput and activeInput.UserInputType == Enum.UserInputType.MouseButton1 and input.UserInputType == Enum.UserInputType.MouseMovement)) then
 			setFromInput(input)
 		end
 	end)
 	self.Window:_connect(UserInputService.InputEnded, function(input: InputObject)
-		if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+		if input == activeInput then
 			dragging = false
+			activeInput = nil
 		end
 	end)
 	table.insert(self.Controls, control)
@@ -1279,7 +1295,13 @@ function Section:AddDropdown(config: {[string]: any})
 
 	local control = {}
 	local optionButtons = {}
+	local optionConnections = {}
 	local function renderOptions()
+		for _, connection in ipairs(optionConnections) do connection:Disconnect() end
+		table.clear(optionConnections)
+		local function connect(signal, callback)
+			table.insert(optionConnections, signal:Connect(callback))
+		end
 		for _, optionButton in ipairs(optionButtons) do
 			optionButton:Destroy()
 		end
@@ -1301,13 +1323,13 @@ function Section:AddDropdown(config: {[string]: any})
 			addCorner(optionButton, 1)
 			addStroke(optionButton, theme.StrokeSoft, 0)
 			table.insert(optionButtons, optionButton)
-			self.Window:_connect(optionButton.MouseEnter, function()
+			connect(optionButton.MouseEnter, function()
 				tween(optionButton, {BackgroundColor3 = theme.SurfaceHover, TextColor3 = theme.Text})
 			end)
-			self.Window:_connect(optionButton.MouseLeave, function()
+			connect(optionButton.MouseLeave, function()
 				tween(optionButton, {BackgroundColor3 = theme.Background, TextColor3 = option == value and theme.Accent or theme.TextMuted})
 			end)
-			self.Window:_connect(optionButton.Activated, function()
+			connect(optionButton.Activated, function()
 				control:Set(option)
 				control:SetOpen(false)
 			end)
@@ -1315,7 +1337,7 @@ function Section:AddDropdown(config: {[string]: any})
 	end
 	function control:SetOpen(state: boolean)
 		open = state
-		local listHeight = #options * 22
+		local listHeight = math.max(0, #options * 23 - 3)
 		list.Size = UDim2.new(1, -16, 0, listHeight)
 		tween(row, {Size = UDim2.new(1, 0, 0, open and (26 + listHeight) or 20)}, TWEEN_SMOOTH)
 		caret.Text = open and "▴" or "▾"
@@ -1334,7 +1356,7 @@ function Section:AddDropdown(config: {[string]: any})
 	end
 	function control:Refresh(newOptions: {any}, keepValue: boolean?)
 		options = newOptions or {}
-		if not keepValue then
+		if not keepValue or not table.find(options, value) then
 			value = nil
 			selected.Text = "SELECT"
 			selected.TextColor3 = theme.TextMuted
@@ -1412,6 +1434,7 @@ end
 
 function Section:AddKeybind(config: {[string]: any})
 	local theme = self.Window.Theme
+	local window = self.Window
 	local value = config.Default or Enum.KeyCode.Unknown
 	local listening = false
 	local row = self:_row("Keybind", 20)
@@ -1449,11 +1472,14 @@ function Section:AddKeybind(config: {[string]: any})
 		bindButton.Text = value.Name:upper()
 		bindButton.TextColor3 = theme.TextMuted
 		listening = false
+		if window.BindingCapture == control then window.BindingCapture = nil end
 	end
 	function control:Get(): Enum.KeyCode
 		return value
 	end
 	self.Window:_connect(bindButton.Activated, function()
+		if window.BindingCapture and window.BindingCapture ~= control then return end
+		window.BindingCapture = control
 		listening = true
 		bindButton.Text = "PRESS KEY"
 		bindButton.TextColor3 = theme.Accent
@@ -1462,13 +1488,14 @@ function Section:AddKeybind(config: {[string]: any})
 		if listening and input.UserInputType == Enum.UserInputType.Keyboard then
 			if input.KeyCode == Enum.KeyCode.Escape then
 				listening = false
+				window.BindingCapture = nil
 				bindButton.Text = value.Name:upper()
 				bindButton.TextColor3 = theme.TextMuted
 			else
 				control:Set(input.KeyCode)
 				safeCall(config.Changed, value)
 			end
-		elseif not processed and not listening and input.KeyCode == value and value ~= Enum.KeyCode.Unknown then
+		elseif not processed and not window.BindingCapture and not UserInputService:GetFocusedTextBox() and not listening and input.KeyCode == value and value ~= Enum.KeyCode.Unknown then
 			safeCall(config.Callback, value)
 		end
 	end)
