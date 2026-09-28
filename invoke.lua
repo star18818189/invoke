@@ -10,7 +10,7 @@ local RunService = game:GetService("RunService")
 
 local Invoke = {}
 Invoke.__index = Invoke
-Invoke.Version = "4.0.0"
+Invoke.Version = "4.1.0"
 
 Invoke.Theme = {
 	Accent = Color3.fromRGB(66, 151, 255),
@@ -205,6 +205,29 @@ function Invoke:CreateWindow(config: {[string]: any}?)
 	addCorner(root, 5)
 	addStroke(root, theme.StrokeSoft, 0, 1)
 
+	local desiredScale = config.Scale or 1.45
+	local interfaceScale = create("UIScale", {
+		Scale = desiredScale,
+		Parent = root,
+	}) :: UIScale
+	window.InterfaceScale = interfaceScale
+
+	local function fitScaleToViewport()
+		local camera = workspace.CurrentCamera
+		if not camera then
+			interfaceScale.Scale = desiredScale
+			return
+		end
+
+		local viewport = camera.ViewportSize
+		local baseWidth = math.max(root.Size.X.Offset, 1)
+		local baseHeight = math.max(root.Size.Y.Offset, 1)
+		local maximumX = math.max((viewport.X - 32) / baseWidth, 0.5)
+		local maximumY = math.max((viewport.Y - 64) / baseHeight, 0.5)
+		interfaceScale.Scale = math.min(desiredScale, maximumX, maximumY)
+	end
+	fitScaleToViewport()
+
 	local shadow = create("ImageLabel", {
 		Name = "Shadow",
 		AnchorPoint = Vector2.new(0.5, 0.5),
@@ -223,15 +246,14 @@ function Invoke:CreateWindow(config: {[string]: any}?)
 
 	local function syncShadow()
 		shadow.Position = root.Position
-		shadow.Size = UDim2.new(
-			root.Size.X.Scale,
-			root.Size.X.Offset + 44,
-			root.Size.Y.Scale,
-			root.Size.Y.Offset + 44
+		shadow.Size = UDim2.fromOffset(
+			(root.Size.X.Offset * interfaceScale.Scale) + 44,
+			(root.Size.Y.Offset * interfaceScale.Scale) + 44
 		)
 	end
 	window:_connect(root:GetPropertyChangedSignal("Position"), syncShadow)
 	window:_connect(root:GetPropertyChangedSignal("Size"), syncShadow)
+	window:_connect(interfaceScale:GetPropertyChangedSignal("Scale"), syncShadow)
 	syncShadow()
 
 	local topbar = create("Frame", {
@@ -457,6 +479,7 @@ function Invoke:CreateWindow(config: {[string]: any}?)
 	local camera = workspace.CurrentCamera
 	if camera then
 		window:_connect(camera:GetPropertyChangedSignal("ViewportSize"), function()
+			fitScaleToViewport()
 			root.Position = clampWindowPosition(root, root.Position)
 		end)
 	end
