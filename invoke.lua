@@ -21,7 +21,7 @@
     Library:Unload()
 
     Values live in Library.Flags[flag]; every element also has :Set(value).
-    Menu key: Library.ToggleKey (default RightShift). The search box in the tab bar filters elements.
+    Menu key: Library.ToggleKey (default RightShift).
 ]]
 
 local UIS = game:GetService("UserInputService")
@@ -398,24 +398,11 @@ function Section:AddSlider(flag, opts)
     local bar = New("Frame", {BackgroundColor3 = T.Inactive, Position = UDim2.fromOffset(0, 19),
         Size = UDim2.new(1, 0, 0, 8), BorderSizePixel = 0}, row)
     Corner(bar)
-    local barStroke = Stroke(bar)
+    Stroke(bar)
     local fill = New("Frame", {Size = UDim2.fromScale(0, 1), BorderSizePixel = 0}, bar)
     Accent(fill, "BackgroundColor3")
     Corner(fill)
     New("UIGradient", {Color = ColorSequence.new(Color3.new(1, 1, 1), Color3.fromRGB(165, 165, 165))}, fill)
-    local knob = New("Frame", {AnchorPoint = Vector2.new(0.5, 0.5), Position = UDim2.fromScale(1, 0.5),
-        Size = UDim2.fromOffset(0, 0), BackgroundColor3 = T.Text, BorderSizePixel = 0}, fill)
-    Corner(knob, 2)
-
-    local hovering, dragging = false, false
-    local function highlight()
-        local on = hovering or dragging
-        Tween(barStroke, {Color = on and Library.Theme.Accent or Library.Theme.Border}, 0.12)
-        Tween(knob, {Size = on and UDim2.fromOffset(5, 12) or UDim2.fromOffset(0, 0)}, 0.12)
-        Tween(val, {TextColor3 = on and Library.Theme.Text or Library.Theme.Hover}, 0.12)
-    end
-    bar.MouseEnter:Connect(function() hovering = true highlight() end)
-    bar.MouseLeave:Connect(function() hovering = false highlight() end)
 
     function obj:Set(v, silent)
         v = math.clamp(Round(v, opts.Rounding or 0), min, max)
@@ -425,9 +412,7 @@ function Section:AddSlider(flag, opts)
         val.Text = tostring(v) .. (opts.Suffix or "")
         if not silent and opts.Callback then task.spawn(opts.Callback, v) end
     end
-    DragArea(bar, function(ax) obj:Set(min + (max - min) * ax) end,
-        function() dragging = true highlight() end,
-        function() dragging = false highlight() end)
+    DragArea(bar, function(ax) obj:Set(min + (max - min) * ax) end)
 
     Library.Objects[flag] = obj
     obj:Set(opts.Default or min, true)
@@ -696,20 +681,6 @@ end
 local Window = {}
 Window.__index = Window
 
-function Window:_applySearch(q)
-    q = q:lower()
-    for _, sec in ipairs(self.Sections) do
-        local titleMatch = q == "" or sec.Title:lower():find(q, 1, true) ~= nil
-        local any = false
-        for _, item in ipairs(sec.Items) do
-            local m = titleMatch or item.name:lower():find(q, 1, true) ~= nil
-            item.frame.Visible = m
-            if m then any = true end
-        end
-        sec.Frame.Visible = q == "" or any
-    end
-end
-
 function Window:_select(tab)
     if self.Active == tab then return end
     local old = self.Active
@@ -813,10 +784,6 @@ function Library:CreateWindow(opts)
     local title = New("TextLabel", {BackgroundTransparency = 1, Text = opts.Title or "Window", Font = T.Font, TextSize = 14,
         TextColor3 = T.Text, Size = UDim2.new(1, 0, 0, 28)}, main)
     Draggable(title, main)
-    local sep = New("Frame", {Position = UDim2.fromOffset(0, 28), Size = UDim2.new(1, 0, 0, 1), BorderSizePixel = 0}, main)
-    Accent(sep, "BackgroundColor3")
-    New("UIGradient", {Transparency = NumberSequence.new({NumberSequenceKeypoint.new(0, 1),
-        NumberSequenceKeypoint.new(0.5, 0.1), NumberSequenceKeypoint.new(1, 1)})}, sep)
 
     local tabBar = New("Frame", {BackgroundTransparency = 1, Position = UDim2.fromOffset(8, 33),
         Size = UDim2.new(1, -16, 0, 24)}, main)
@@ -825,22 +792,11 @@ function Library:CreateWindow(opts)
     New("Frame", {BackgroundColor3 = T.Border, Position = UDim2.fromOffset(0, 58), Size = UDim2.new(1, 0, 0, 1),
         BorderSizePixel = 0}, main)
 
-    local search = New("TextBox", {BackgroundColor3 = T.Inactive, AnchorPoint = Vector2.new(1, 0.5),
-        Position = UDim2.new(1, 0, 0.5, -1), Size = UDim2.fromOffset(104, 20), Text = "", PlaceholderText = "Search",
-        PlaceholderColor3 = T.Dim, ClearTextOnFocus = false, Font = T.Font, TextSize = 13, TextColor3 = T.Text,
-        BorderSizePixel = 0}, tabBar)
-    Corner(search)
-    local searchStroke = Stroke(search)
-    New("UIPadding", {PaddingLeft = UDim.new(0, 6), PaddingRight = UDim.new(0, 6)}, search)
-    search.Focused:Connect(function() Tween(searchStroke, {Color = Library.Theme.Accent}, 0.15) end)
-    search.FocusLost:Connect(function() Tween(searchStroke, {Color = Library.Theme.Border}, 0.15) end)
-
     local content = New("Frame", {BackgroundTransparency = 1, Position = UDim2.fromOffset(8, 64),
         Size = UDim2.new(1, -16, 1, -72)}, main)
 
     local win = setmetatable({Gui = gui, Main = main, Scale = scale, TabBar = tabBar, Content = content,
         Indicator = indicator, Tabs = {}, Sections = {}, Closers = {}, NextX = 0, Visible = false}, Window)
-    search:GetPropertyChangedSignal("Text"):Connect(function() win:_applySearch(search.Text) end)
 
     -- notification holder
     if not self._notifyHolder then
