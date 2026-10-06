@@ -260,13 +260,16 @@ local function MakePicker(window, swatch, default, onChange)
         if not silent and onChange then task.spawn(onChange, c) end
     end
 
-    local function setOpen(state)
+    local function setOpen(state, instant)
         open = state
         if state then
             local ap = swatch.AbsolutePosition
             pop.Position = UDim2.fromOffset(math.max(4, ap.X + swatch.AbsoluteSize.X - 170), ap.Y + 18)
             pop.Visible = true
             Tween(pop, {GroupTransparency = 0}, 0.15)
+        elseif instant then
+            pop.GroupTransparency = 1
+            pop.Visible = false
         else
             Tween(pop, {GroupTransparency = 1}, 0.12)
             task.delay(0.12, function() if not open then pop.Visible = false end end)
@@ -282,7 +285,7 @@ local function MakePicker(window, swatch, default, onChange)
             if not Inside(pop, m) and not Inside(swatch, m) then setOpen(false) end
         end
     end)
-    table.insert(window.Closers, function() if open then setOpen(false) end end)
+    table.insert(window.Closers, function(instant) if open then setOpen(false, instant) end end)
 
     function api.Set(c, silent)
         h, s, v = c:ToHSV()
@@ -459,7 +462,7 @@ function Section:AddDropdown(flag, opts)
 
     local buttons = {}
     local open = false
-    local function setOpen(state)
+    local function setOpen(state, instant)
         if state == open then return end
         open = state
         if state then
@@ -467,6 +470,9 @@ function Section:AddDropdown(flag, opts)
             Library._openDD = setOpen
             list.Visible = true
             Tween(list, {Size = UDim2.new(1, 0, 0, fullH)}, 0.22, QUINT)
+        elseif instant then
+            list.Size = UDim2.new(1, 0, 0, 0)
+            list.Visible = false
         else
             Tween(list, {Size = UDim2.new(1, 0, 0, 0)}, 0.16, QUINT)
             task.delay(0.16, function() if not open then list.Visible = false end end)
@@ -474,7 +480,7 @@ function Section:AddDropdown(flag, opts)
         Tween(icon, {TextColor3 = state and Library.Theme.Accent or Library.Theme.Dim}, 0.15)
         Tween(boxStroke, {Color = state and Library.Theme.Accent or Library.Theme.Border}, 0.15)
     end
-    table.insert(self.Window.Closers, function() setOpen(false) end)
+    table.insert(self.Window.Closers, function(instant) setOpen(false, instant) end)
 
     local function refresh()
         if opts.Multi then
@@ -768,16 +774,10 @@ end
 
 function Window:SetVisible(v)
     self.Visible = v
-    if v then
-        self.Main.Visible = true
-        Tween(self.Main, {GroupTransparency = 0}, 0.22)
-        Tween(self.Scale, {Scale = 1}, 0.3, Enum.EasingStyle.Back)
-    else
-        for _, close in ipairs(self.Closers) do close() end
-        Tween(self.Main, {GroupTransparency = 1}, 0.15)
-        Tween(self.Scale, {Scale = 0.95}, 0.15)
-        task.delay(0.15, function() if not self.Visible then self.Main.Visible = false end end)
+    if not v then
+        for _, close in ipairs(self.Closers) do close(true) end -- close popups/dropdowns instantly
     end
+    self.Main.Visible = v -- instant: everything appears/disappears in the same frame
 end
 
 function Window:Destroy() self.Gui:Destroy() end
@@ -791,12 +791,11 @@ function Library:CreateWindow(opts)
         DisplayOrder = 999, IgnoreGuiInset = true})
     gui.Parent = GuiParent()
 
-    local main = New("CanvasGroup", {BackgroundColor3 = T.Background, AnchorPoint = Vector2.new(0.5, 0.5),
+    local main = New("Frame", {BackgroundColor3 = T.Background, AnchorPoint = Vector2.new(0.5, 0.5),
         Position = UDim2.fromScale(0.5, 0.5), Size = UDim2.fromOffset(size.X, size.Y), BorderSizePixel = 0,
-        GroupTransparency = 1, Visible = false}, gui)
+        ClipsDescendants = true, Visible = false}, gui)
     Corner(main, math.max(T.Corner, 0))
     Stroke(main)
-    local scale = New("UIScale", {Scale = 0.92}, main)
 
     local title = New("TextLabel", {BackgroundTransparency = 1, Text = opts.Title or "Window", Font = T.Font, TextSize = 14,
         TextColor3 = T.Text, Size = UDim2.new(1, 0, 0, 28)}, main)
@@ -814,7 +813,7 @@ function Library:CreateWindow(opts)
     local cover = New("Frame", {BackgroundColor3 = T.Background, BackgroundTransparency = 1, Size = UDim2.fromScale(1, 1),
         ZIndex = 20, BorderSizePixel = 0, Active = false}, content)
 
-    local win = setmetatable({Gui = gui, Main = main, Scale = scale, TabBar = tabBar, Content = content,
+    local win = setmetatable({Gui = gui, Main = main, TabBar = tabBar, Content = content,
         Indicator = indicator, Cover = cover, Tabs = {}, Sections = {}, Closers = {}, NextX = 0, Visible = false}, Window)
 
     -- notification holder
