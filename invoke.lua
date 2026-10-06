@@ -1,7 +1,7 @@
 --[[
     Animated dark/teal tabbed UI library (Luau)
 
-    local Window  = Library:CreateWindow({Title = "...", Size = Vector2.new(540, 580)})
+    local Window  = Library:CreateWindow({Title = "...", TitleSize = 20, Size = Vector2.new(540, 580)})
     local Tab     = Window:AddTab("Name")
     local Section = Tab:AddSection("Title", "Left" | "Right")
 
@@ -797,19 +797,21 @@ function Library:CreateWindow(opts)
     Corner(main, math.max(T.Corner, 0))
     Stroke(main)
 
-    local title = New("TextLabel", {BackgroundTransparency = 1, Text = opts.Title or "Window", Font = T.Font, TextSize = 14,
-        TextColor3 = T.Text, Size = UDim2.new(1, 0, 0, 28)}, main)
+    local titleSize = opts.TitleSize or 20          -- change with CreateWindow({TitleSize = 24})
+    local headerH = titleSize + 14                  -- layout below the title shifts with it
+    local title = New("TextLabel", {BackgroundTransparency = 1, Text = opts.Title or "Window", Font = T.Font,
+        TextSize = titleSize, TextColor3 = T.Text, Size = UDim2.new(1, 0, 0, headerH)}, main)
     Draggable(title, main)
 
-    local tabBar = New("Frame", {BackgroundTransparency = 1, Position = UDim2.fromOffset(8, 33),
+    local tabBar = New("Frame", {BackgroundTransparency = 1, Position = UDim2.fromOffset(8, headerH + 5),
         Size = UDim2.new(1, -16, 0, 24)}, main)
     local indicator = New("Frame", {Position = UDim2.fromOffset(0, 22), Size = UDim2.fromOffset(0, 2), BorderSizePixel = 0}, tabBar)
     Accent(indicator, "BackgroundColor3")
-    New("Frame", {BackgroundColor3 = T.Border, Position = UDim2.fromOffset(0, 58), Size = UDim2.new(1, 0, 0, 1),
+    New("Frame", {BackgroundColor3 = T.Border, Position = UDim2.fromOffset(0, headerH + 30), Size = UDim2.new(1, 0, 0, 1),
         BorderSizePixel = 0}, main)
 
-    local content = New("Frame", {BackgroundTransparency = 1, Position = UDim2.fromOffset(8, 64),
-        Size = UDim2.new(1, -16, 1, -72), ClipsDescendants = true}, main)
+    local content = New("Frame", {BackgroundTransparency = 1, Position = UDim2.fromOffset(8, headerH + 36),
+        Size = UDim2.new(1, -16, 1, -(headerH + 44)), ClipsDescendants = true}, main)
     local cover = New("Frame", {BackgroundColor3 = T.Background, BackgroundTransparency = 1, Size = UDim2.fromScale(1, 1),
         ZIndex = 20, BorderSizePixel = 0, Active = false}, content)
 
