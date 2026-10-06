@@ -36,6 +36,7 @@ local Library = {
     Windows = {},
     ToggleKey = Enum.KeyCode.RightShift,
     _conns = {},
+    _hooks = {},
     Theme = {
         Background = Color3.fromRGB(21, 25, 25),
         Panel = Color3.fromRGB(24, 29, 29),
@@ -82,6 +83,11 @@ end
 local function Accent(inst, prop)
     inst[prop] = Library.Theme.Accent
     table.insert(accentObjects, {inst, prop})
+end
+
+-- register a function that re-applies accent-dependent state when the accent changes
+local function OnAccent(fn)
+    table.insert(Library._hooks, fn)
 end
 
 local function Conn(signal, fn)
@@ -373,6 +379,9 @@ function Section:AddToggle(flag, opts)
         Tween(text, {TextColor3 = textColor()}, 0.15)
         if not silent and opts.Callback then task.spawn(opts.Callback, self.Value) end
     end
+    OnAccent(function()
+        if obj.Value then Tween(boxStroke, {Color = Library.Theme.Accent}, 0.2) end
+    end)
     text.MouseButton1Click:Connect(function() obj:Set(not obj.Value) end)
     box.InputBegan:Connect(function(i)
         if i.UserInputType == Enum.UserInputType.MouseButton1 then obj:Set(not obj.Value) end
@@ -482,6 +491,14 @@ function Section:AddDropdown(flag, opts)
         Library.Flags[flag] = obj.Value
     end
 
+    OnAccent(function()
+        refresh()
+        if open then
+            Tween(icon, {TextColor3 = Library.Theme.Accent}, 0.2)
+            Tween(boxStroke, {Color = Library.Theme.Accent}, 0.2)
+        end
+    end)
+
     function obj:Set(v, silent)
         if opts.Multi then
             self.Value = {}
@@ -588,6 +605,9 @@ function Section:AddTextbox(flag, opts)
     Corner(box)
     local st = Stroke(box)
     New("UIPadding", {PaddingLeft = UDim.new(0, 8), PaddingRight = UDim.new(0, 8)}, box)
+    OnAccent(function()
+        if box:IsFocused() then Tween(st, {Color = Library.Theme.Accent}, 0.2) end
+    end)
     box.Focused:Connect(function() Tween(st, {Color = Library.Theme.Accent}, 0.15) end)
     box.FocusLost:Connect(function()
         Tween(st, {Color = Library.Theme.Border}, 0.15)
@@ -854,6 +874,7 @@ function Library:SetAccent(color)
     for _, p in ipairs(accentObjects) do
         if p[1].Parent then Tween(p[1], {[p[2]] = color}, 0.2) end
     end
+    for _, hook in ipairs(self._hooks) do pcall(hook) end
 end
 
 function Library:GetConfig()
@@ -906,7 +927,7 @@ end
 function Library:Unload()
     for _, c in ipairs(self._conns) do pcall(function() c:Disconnect() end) end
     for _, w in ipairs(self.Windows) do pcall(function() w.Gui:Destroy() end) end
-    self._conns, self.Windows, self._notifyHolder = {}, {}, nil
+    self._conns, self.Windows, self._hooks, self._notifyHolder = {}, {}, {}, nil
 end
 
 return Library
