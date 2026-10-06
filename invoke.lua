@@ -1,7 +1,7 @@
 --[[
     Animated dark/teal tabbed UI library (Luau)
 
-    local Window  = Library:CreateWindow({Title = "...", TitleSize = 20, Size = Vector2.new(540, 580)})
+    local Window  = Library:CreateWindow({Title = "...", TitleSize = 16, TitleFont = nil, Size = Vector2.new(540, 580)})
     local Tab     = Window:AddTab("Name")
     local Section = Tab:AddSection("Title", "Left" | "Right")
 
@@ -18,6 +18,7 @@
     Library:SetAccent(Color3)
     Library:SaveConfig(name) / Library:LoadConfig(name)   (needs writefile/readfile)
     Library:GetConfig() / Library:SetConfig(table)
+    Library:LoadFont(name, ttfUrl)   -> Font object (for TitleFont); needs writefile/getcustomasset
     Library:Unload()
 
     Values live in Library.Flags[flag]; every element also has :Set(value).
@@ -797,10 +798,13 @@ function Library:CreateWindow(opts)
     Corner(main, math.max(T.Corner, 0))
     Stroke(main)
 
-    local titleSize = opts.TitleSize or 20          -- change with CreateWindow({TitleSize = 24})
+    local titleSize = opts.TitleSize or 16          -- change with CreateWindow({TitleSize = 24})
     local headerH = titleSize + 14                  -- layout below the title shifts with it
     local title = New("TextLabel", {BackgroundTransparency = 1, Text = opts.Title or "Window", Font = T.Font,
         TextSize = titleSize, TextColor3 = T.Text, Size = UDim2.new(1, 0, 0, headerH)}, main)
+    if opts.TitleFont then -- an Enum.Font or a Font object (e.g. from Library:LoadFont)
+        if typeof(opts.TitleFont) == "Font" then title.FontFace = opts.TitleFont else title.Font = opts.TitleFont end
+    end
     Draggable(title, main)
 
     local tabBar = New("Frame", {BackgroundTransparency = 1, Position = UDim2.fromOffset(8, headerH + 5),
@@ -922,6 +926,22 @@ function Library:LoadConfig(name)
         return true
     end
     return false
+end
+
+-- Downloads a .ttf from a direct link and turns it into a Font object (needs writefile + getcustomasset).
+-- Returns nil if the executor can't do it, so the UI just falls back to the default font.
+function Library:LoadFont(name, ttfUrl)
+    local ok, font = pcall(function()
+        local path = name .. ".ttf"
+        if not (isfile and isfile(path)) then writefile(path, game:HttpGet(ttfUrl)) end
+        writefile(name .. ".font", HttpService:JSONEncode({
+            name = name,
+            faces = {{name = "Regular", weight = 400, style = "normal", assetId = getcustomasset(path)}},
+        }))
+        return Font.new(getcustomasset(name .. ".font"))
+    end)
+    if not ok then warn("[UI] Could not load font '" .. name .. "': " .. tostring(font)) end
+    return ok and font or nil
 end
 
 function Library:Unload()
