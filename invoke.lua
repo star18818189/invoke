@@ -703,32 +703,29 @@ Window.__index = Window
 
 function Window:_select(tab)
     if self.Active == tab then return end
-    local old = self.Active
     self.Active = tab
     local T = Library.Theme
 
+    -- only the selected page is ever visible (no overlapping pages while switching)
     for _, t in ipairs(self.Tabs) do
         Tween(t.Button, {TextColor3 = t == tab and T.Text or T.Dim}, 0.2)
-        if t ~= tab and t ~= old then t.Page.Visible = false end
+        t.Page.Visible = (t == tab)
     end
 
-    local target = {Position = UDim2.fromOffset(tab.X, 22), Size = UDim2.fromOffset(tab.W, 2)}
-    if old then
-        Tween(self.Indicator, target, 0.32, QUINT)
-        Tween(old.Page, {GroupTransparency = 1}, 0.12)
-        task.delay(0.12, function() if self.Active ~= old then old.Page.Visible = false end end)
+    local pos, size = UDim2.fromOffset(tab.X, 22), UDim2.fromOffset(tab.W, 2)
+    if self._hasSelected then
+        Tween(self.Indicator, {Position = pos, Size = size}, 0.3, QUINT)
     else
-        self.Indicator.Position, self.Indicator.Size = target.Position, target.Size
+        self.Indicator.Position, self.Indicator.Size = pos, size
     end
+    self._hasSelected = true
 
-    tab.Page.Visible = true
-    tab.Page.GroupTransparency = 1
-    tab.Page.Position = UDim2.fromOffset(0, 10)
-    task.delay(old and 0.07 or 0, function()
-        if self.Active == tab then
-            Tween(tab.Page, {GroupTransparency = 0, Position = UDim2.fromOffset(0, 0)}, 0.3, QUINT)
-        end
-    end)
+    -- the cover covers the new page, then fades away while the page slides into place
+    tab.Page.Position = UDim2.fromOffset(0, 8)
+    self.Cover.BackgroundTransparency = 0
+    Tween(tab.Page, {Position = UDim2.fromOffset(0, 0)}, 0.3, QUINT)
+    Tween(self.Cover, {BackgroundTransparency = 1}, 0.28)
+
     for _, close in ipairs(self.Closers) do close() end
 end
 
@@ -742,8 +739,8 @@ function Window:AddTab(name)
         TextColor3 = T.Dim, Position = UDim2.fromOffset(x, 0), Size = UDim2.fromOffset(w, 22),
         AutoButtonColor = false}, self.TabBar)
 
-    local page = New("CanvasGroup", {BackgroundTransparency = 1, Size = UDim2.fromScale(1, 1), Visible = false,
-        GroupTransparency = 1}, self.Content)
+    local page = New("Frame", {BackgroundTransparency = 1, Size = UDim2.fromScale(1, 1), Visible = false,
+        BorderSizePixel = 0}, self.Content)
     local function column(xs)
         local c = New("ScrollingFrame", {BackgroundTransparency = 1, BorderSizePixel = 0, ScrollBarThickness = 2,
             Size = UDim2.new(0.5, -4, 1, 0), Position = UDim2.new(xs, xs == 0 and 0 or 4, 0, 0),
@@ -813,10 +810,12 @@ function Library:CreateWindow(opts)
         BorderSizePixel = 0}, main)
 
     local content = New("Frame", {BackgroundTransparency = 1, Position = UDim2.fromOffset(8, 64),
-        Size = UDim2.new(1, -16, 1, -72)}, main)
+        Size = UDim2.new(1, -16, 1, -72), ClipsDescendants = true}, main)
+    local cover = New("Frame", {BackgroundColor3 = T.Background, BackgroundTransparency = 1, Size = UDim2.fromScale(1, 1),
+        ZIndex = 20, BorderSizePixel = 0, Active = false}, content)
 
     local win = setmetatable({Gui = gui, Main = main, Scale = scale, TabBar = tabBar, Content = content,
-        Indicator = indicator, Tabs = {}, Sections = {}, Closers = {}, NextX = 0, Visible = false}, Window)
+        Indicator = indicator, Cover = cover, Tabs = {}, Sections = {}, Closers = {}, NextX = 0, Visible = false}, Window)
 
     -- notification holder
     if not self._notifyHolder then
